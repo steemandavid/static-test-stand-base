@@ -14,7 +14,13 @@
 #include "esp_event.h"
 #include "esp_log.h"
 
+// STS components
 #include "sts_common.h"
+#include "sts_core.h"
+#include "sts_measure.h"
+#include "sts_console.h"
+
+sts_common_context_t sts_common_context;
 
 static const char *TAG = "main";
 
@@ -29,11 +35,10 @@ static const char *TAG = "main";
 */
 void catastrophic_failure()
 {
-    ESP_LOGIE(TAG, "Catastrophic failure, restarting in 5 seconds...");
+    ESP_LOGE(TAG, "Catastrophic failure, restarting in 5 seconds...");
     vTaskDelay(5000 / portTICK_PERIOD_MS);
     esp_restart();
 }
-
 
 void app_main(void)
 {
@@ -48,6 +53,24 @@ void app_main(void)
     if (ret != ESP_OK)
     {
         ESP_LOGE(TAG, "Error initializing common components: %s", esp_err_to_name(ret));
+        catastrophic_failure();
+    }
+    ret = sts_core_init();
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error initializing core components: %s", esp_err_to_name(ret));
+        catastrophic_failure();
+    }
+    ret = sts_measure_init();
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error initializing measure components: %s", esp_err_to_name(ret));
+        catastrophic_failure();
+    }
+    ret = sts_console_init();
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error initializing console components: %s", esp_err_to_name(ret));
         catastrophic_failure();
     }
 }
